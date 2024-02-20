@@ -21,11 +21,14 @@ def get_baseline(baseline_waveform, iterations=5):
         return np.mean(baseline_waveform)
     avg = np.mean(baseline_waveform)
     std = np.std(baseline_waveform)
-    return get_baseline(baseline_waveform[baseline_waveform < avg + 3 * std], iterations-1)
+    return get_baseline(
+        baseline_waveform[baseline_waveform < avg + 3 * std], iterations - 1
+    )
 
 
 def get_baselines(baseline_waveforms):
     return np.apply_along_axis(get_baseline, 1, baseline_waveforms)
+
 
 def get_baseline_subtracted_waveforms(waveforms, baselines):
     return waveforms - baselines[:, np.newaxis]
@@ -71,11 +74,7 @@ def calculate_waveform_parameters(waveforms):
 
 
 def calculate_baseline_cut(baselines):
-    #print(np.shape(baselines))
-    #print(baselines)
-    baseline_cut = np.nanmean(baselines) + 4 * np.std(baselines) 
-    #plt.plot(average_waveform)
-    #plt.hlines(baseline_cut, 0, pulse_start, color='k', label='Baseline cut')
+    baseline_cut = np.nanmean(baselines) + 4 * np.std(baselines)
     print("baseline_cut =", baseline_cut)
 
 
