@@ -1,7 +1,11 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
+import scipy.optimize
 from read_waveform import data_reader
+
+matplotlib.use("WebAgg")
 
 
 def average(xs):
@@ -74,17 +78,60 @@ def calculate_waveform_parameters(waveforms):
 
 
 def calculate_baseline_cut(baselines):
-    baseline_cut = np.nanmean(baselines) + 4 * np.std(baselines)
-    print("baseline_cut =", baseline_cut)
+    baseline_cut = np.nanmean(baselines) + 3 * np.std(baselines)
+    print("baseline cut =", baseline_cut)
+    return baseline_cut
 
 
-waveforms = np.array(data_reader("data/test.dat", 10000, 200))
+def gaussian(x, H, A, x0, sigma, c):
+    return H + A * np.exp(-((x - x0) ** 2) / (2 * sigma**2))
+
+
+def get_histogram(data):
+    num_bins = 100
+    x_max = 20000
+    hist = np.histogram(data, bins=num_bins, range=(0, x_max))
+    xs = hist[1][:-1] + x_max / num_bins / 2
+    ys = hist[0]
+    return xs, ys
+
+
+def get_multipeak_fit(charges, offset, interval, num_peaks):
+    half_width = interval / 3
+    xs, ys = get_histogram(charges)
+    scipy.optimize.curve_fit(
+        gaussian,
+        xs[offset - half_width <= xs < offset + half_width],
+        ys[offset - half_width <= xs < offset + half_width],
+    )
+    for i in range(num_peaks):
+        print(i)
+
+    return 0
+
+
+waveforms = np.array(
+    data_reader(
+        "data/20240115_SPE_LED365nm/SPE_365nm/run16_C1_LED_20ns_3V30/0_wave0_C1_LED_20ns_3V30.dat",
+        10000,
+        100,
+    )
+)
 
 # calculate_waveform_parameters(waveforms)
 pulse_start = 4100
 pulse_end = 6000
-baseline_cut = 20
+# baseline_cut = 20
 
 baselines = get_baselines(waveforms[:, :pulse_start])
 baseline_subtracted_waveforms = get_baseline_subtracted_waveforms(waveforms, baselines)
-calculate_baseline_cut(baselines)
+baseline_cut = calculate_baseline_cut(baselines)
+cut_waveforms = baseline_subtracted_waveforms[baselines < baseline_cut]
+charges = get_charges(cut_waveforms[:, pulse_start:pulse_end])
+
+plt.plot(np.transpose(baseline_subtracted_waveforms[50:65, pulse_start:pulse_end]))
+# plt.plot(get_average_waveform(baseline_subtracted_waveforms))
+# plt.hist(baselines)
+# plt.hist(charges, bins=100, range=(0, 20000))
+plt.show()
+
