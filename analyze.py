@@ -5,8 +5,6 @@ import numpy.ma as ma
 import scipy.optimize
 from read_waveform import data_reader
 
-matplotlib.use("WebAgg")
-
 
 def average(xs):
     return xs.sum / xs.size
@@ -109,29 +107,4 @@ def get_multipeak_fit(charges, offset, interval, num_peaks):
 
     return 0
 
-
-waveforms = np.array(
-    data_reader(
-        "data/20240115_SPE_LED365nm/SPE_365nm/run16_C1_LED_20ns_3V30/0_wave0_C1_LED_20ns_3V30.dat",
-        10000,
-        100,
-    )
-)
-
-# calculate_waveform_parameters(waveforms)
-pulse_start = 4100
-pulse_end = 6000
-# baseline_cut = 20
-
-baselines = get_baselines(waveforms[:, :pulse_start])
-baseline_subtracted_waveforms = get_baseline_subtracted_waveforms(waveforms, baselines)
-baseline_cut = calculate_baseline_cut(baselines)
-cut_waveforms = baseline_subtracted_waveforms[baselines < baseline_cut]
-charges = get_charges(cut_waveforms[:, pulse_start:pulse_end])
-
-plt.plot(np.transpose(baseline_subtracted_waveforms[50:65, pulse_start:pulse_end]))
-# plt.plot(get_average_waveform(baseline_subtracted_waveforms))
-# plt.hist(baselines)
-# plt.hist(charges, bins=100, range=(0, 20000))
-plt.show()
 
